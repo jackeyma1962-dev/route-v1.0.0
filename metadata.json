@@ -1,0 +1,7 @@
+{
+  "name": "RestWalk",
+  "description": "一款現代化的步行路線規劃工具，利用 Gemini AI 根據距離間隔智慧計算休息站點。",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
