@@ -18,6 +18,7 @@ export interface RouteOption {
   estimatedDuration: string;
   description: string;
   stops: RouteStop[];
+  path?: Coordinate[]; // 真實路徑的座標點集合
 }
 
 export interface UserInput {

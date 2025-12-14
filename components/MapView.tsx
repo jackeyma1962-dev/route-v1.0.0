@@ -19,15 +19,19 @@ const customIcon = new L.Icon({
 });
 
 // Component to handle map bounds updates
-const MapController: React.FC<{ stops: RouteOption['stops'] }> = ({ stops }) => {
+const MapController: React.FC<{ stops: RouteOption['stops'], path?: RouteOption['path'] }> = ({ stops, path }) => {
   const map = useMap();
 
   useEffect(() => {
-    if (stops.length > 0) {
+    // 優先使用 path 計算邊界，因為它包含所有轉折點，範圍更精確
+    if (path && path.length > 0) {
+      const bounds = L.latLngBounds(path.map(p => [p.lat, p.lng]));
+      map.fitBounds(bounds, { padding: [50, 50] });
+    } else if (stops.length > 0) {
       const bounds = L.latLngBounds(stops.map(s => [s.coordinates.lat, s.coordinates.lng]));
       map.fitBounds(bounds, { padding: [50, 50] });
     }
-  }, [stops, map]);
+  }, [stops, path, map]);
 
   return null;
 };
@@ -39,8 +43,8 @@ interface MapViewProps {
 export const MapView: React.FC<MapViewProps> = ({ activeRoute }) => {
   const defaultCenter = { lat: 25.0330, lng: 121.5654 }; // Default to Taipei
 
-  // Simple polyline color based on index
-  const purpleOptions = { color: '#4f46e5', weight: 4, opacity: 0.7, dashArray: '10, 10' };
+  // Simple polyline color
+  const purpleOptions = { color: '#4f46e5', weight: 5, opacity: 0.8 };
 
   return (
     <div className="h-full w-full relative z-0">
@@ -57,11 +61,18 @@ export const MapView: React.FC<MapViewProps> = ({ activeRoute }) => {
         
         {activeRoute && (
           <>
-            <MapController stops={activeRoute.stops} />
+            <MapController stops={activeRoute.stops} path={activeRoute.path} />
+            
+            {/* 優先繪製真實路徑 (activeRoute.path)，如果沒有則退化回直線 (activeRoute.stops) */}
             <Polyline 
-              positions={activeRoute.stops.map(s => [s.coordinates.lat, s.coordinates.lng])}
+              positions={
+                activeRoute.path 
+                  ? activeRoute.path.map(p => [p.lat, p.lng]) 
+                  : activeRoute.stops.map(s => [s.coordinates.lat, s.coordinates.lng])
+              }
               pathOptions={purpleOptions}
             />
+
             {activeRoute.stops.map((stop, idx) => (
               <Marker 
                 key={idx} 

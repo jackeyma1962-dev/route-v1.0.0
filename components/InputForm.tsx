@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Navigation, Timer } from 'lucide-react';
+import { MapPin, Navigation, Timer, Crosshair } from 'lucide-react';
 import { UserInput } from '../types';
 
 interface InputFormProps {
@@ -10,6 +10,25 @@ interface InputFormProps {
 }
 
 export const InputForm: React.FC<InputFormProps> = ({ input, setInput, onSubmit, isLoading }) => {
+  
+  const handleUseCurrentLocation = () => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          // 將座標直接填入起點，格式為 "lat,lng"
+          setInput(prev => ({ ...prev, origin: `${latitude},${longitude}` }));
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          alert("無法獲取您的位置，請確認瀏覽器權限。");
+        }
+      );
+    } else {
+      alert("您的瀏覽器不支援地理定位功能。");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="space-y-4">
@@ -19,11 +38,18 @@ export const InputForm: React.FC<InputFormProps> = ({ input, setInput, onSubmit,
           </div>
           <input
             type="text"
-            className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-slate-50 text-black placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm"
-            placeholder="起點 (例如: 台北 101)"
+            className="block w-full pl-10 pr-12 py-3 border border-slate-200 rounded-xl leading-5 bg-slate-50 text-black placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm"
+            placeholder="起點 (或輸入座標)"
             value={input.origin}
             onChange={(e) => setInput({ ...input, origin: e.target.value })}
           />
+          <button
+            onClick={handleUseCurrentLocation}
+            title="使用目前位置"
+            className="absolute inset-y-0 right-2 flex items-center p-2 text-slate-400 hover:text-indigo-600 transition-colors"
+          >
+            <Crosshair className="h-5 w-5" />
+          </button>
         </div>
 
         <div className="relative group">
@@ -33,7 +59,7 @@ export const InputForm: React.FC<InputFormProps> = ({ input, setInput, onSubmit,
           <input
             type="text"
             className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-slate-50 text-black placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all shadow-sm"
-            placeholder="終點 (例如: 西門町)"
+            placeholder="終點 (例如: 台北車站)"
             value={input.destination}
             onChange={(e) => setInput({ ...input, destination: e.target.value })}
           />
